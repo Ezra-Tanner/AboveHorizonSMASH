@@ -1,0 +1,662 @@
+<!DOCTYPE HTML>
+<html>
+<title> above horizon SMASH </title>
+<head>
+    <link rel="icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAAAXNSR0IArs4c6QAAAndJREFUeF7tmk1OxDAMhVv2CNbcgBMgDtM9R2I/h0FzAm7AGsSeQSq11FhxbKexy9RhN1Wa1N97dn7IOAT/G4PHP+wJ4ILg7/Ituwy6BN4BdAekBHZxo+eg2PJc/XX5NpdBiJwPA0CrPAZjKpJp55XKHxvA48vtHOD763cSKPV8GGzXKu4OCAsAB35z95E44OfrYf6dAWQqkmnn6xoQHgDIjZXHFQ+csHpuKpJp57lZoANAud8dgAgcKQWyK8CKFABEJulq0mlpBRgOADf9UTXAaz1g7oCIAJLcbwjApBZYOCAsgGzgIBvs/qRFEJyD32+9QmzpgHAAsvM8Vg5XecoJeDdInZfhc4StjtjigA5grRKnPOUEeL71/dqTo2YO2BrA1vc9ARSnOSqQQu5m053rp9UZYo0DOoD12R2X2w1zPDkzLIyrElXVOHfGd0QAYHEMZ37OFSvIda4dNc9z8z9XGwrrgmxcOQd0AAtFgFNc4tYqJnWA1lGZ2QbHkYgucUBYAMWqa6Ug3v3V1hLpnqHkgNgAWpPX9kcpqO0nc54gqwENBkqyRNvf1QCg/s9P5TK3J8BrfO5kSAp2NW5bB4QBUGtJ/N40TcUJ5HQ6qVKHE6BZDQgHAMskzTVqc8Qpj98DJ2jHFdw9ktWA8AC05Lk9gZcDBNtzmQM6gOU+H0eUAwU5aeUAt1kgM52I9gpXC0C625O2q3WAtH9FO1kNUHQoanpNAEQBVTTS3hqvObBVf5bLIMtXxQbwfBlmAOf79I4wluzp8+/O8Ntoe0scxnVzQHgAQJwC4a28uwM6gIUAOIAq1165v7sDwgLAqQC/vZXfzQH/DcAvsjPoULebFjQAAAAASUVORK5CYIIA">
+</head>
+<body style= "background-color:black">
+<canvas id = "canvas" width = "400" height = "400" ></canvas>
+<script>
+	// get key elements and values surrounding them into variables
+	let canvas = document.getElementById("canvas")
+	canvas.width = window.innerWidth;
+	canvas.height = window.innerHeight;
+	
+	let widener = canvas.height/700
+	let ctx = canvas.getContext("2d")
+	let zoom = 1;
+	let p1Type = 0;
+	let p2Type = 0;
+	let inMenu = true
+	let mouseDown = false
+	let p1WonLast = null
+	let xOff = canvas.width/2/zoom;
+	let yOff = 350/zoom;
+	let planetX  = 0;
+	let planetY = 0;
+  
+  window.addEventListener("resize",function(){
+    canvas.width = window.innerWidth;
+	  canvas.height = window.innerHeight;
+	  widener = canvas.height/700
+  })
+	
+	let account = function(to,x){
+	  if(x){
+	    return((to + xOff) * zoom*widener)
+	  }else{
+	    return((to + yOff) * zoom*widener)
+	  }
+	}
+	
+	let mantaBomberImg = new Image();
+	mantaBomberImg.src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAAAXNSR0IArs4c6QAAAg5JREFUeF7tWktOw0AMTVdU6jW4STfcowskLoG4BBIL7sGmN+EalWAFwqpFxhqPPanTKvHrJmpmxrHfe/Z8ks2Q/LdJHv8AAKCA5AggBZILAEUQKYAUSI4AUiC5ADALXCMFfhSVyWd7+4WKFgCEwlkaI0afXu7p7t3XO12/twe6vj5/Fr0d/WYhaxaj58jSAlDksmSWaWcl8H9WiGyXShmG2MI9hwJWCwAHZoHmAsCqPVqtcCjA6ye5YAUz9tNreHUAUEBvux2B8Xg6MSjNeZxzXzItc122y9rA7Y5a4PWzeKRHAV7DVeaXDEARuAxkpITqfG7l+NT2ihLIFCu04WeV7JYCAICS+1XytJyfyrQ1TlMCj3PULHMW0HI/FwAyWi/Tcu1vMaq199ppKGNaDcgIQHVfLpnvZWaqAqxxmh9eJdRkkRaAYvtqIb/U9pEyiPyxAgDAHyLeKg8FLBQBpMD/WSRqAIogZgFMg1gHYCE0ms6xEsRKEEth7AWwGbp0N6idxPTajbIj92yzb4aiHI+y0wMA99W+1aF2jUl2+GG/r26UP47H5ngedKkd632BfCHsPhNkBzMAoB11NJXBgywFeM9RAux4XvxO+j6gGUOA42Q/wE44AF7yor73i7LT9NuFkjfyc78ox6PsXB2ATrxu230OBdw2os6nA4BOwFbXHQpYHaWdAUEBnYCtrvsvpiI4UHqDuQgAAAAASUVORK5CYIIA"
+	
+	let mantaBomberBurningImg = new Image();
+	mantaBomberBurningImg.src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAAAXNSR0IArs4c6QAAAlNJREFUeF7tWr1KBEEM3qsUDt/CTrAWLK/xPSwEX0J8iQML38PmSsFasPMt5EArxWB0J0wmmd2sx95819zpzHyTfPmS+dlddI1/Fo3734EAKKBxBpACjQsARRApgBRonAGkQOMCwCrwHynwqahMzu3tFypaEBBKZwpGEb2+Pab/Hrzf0/fH4SV9r29ek96OfpMEaxLQH8+aJSDJZRlZDjsrgf9mhch2qZSuiy3cUyhgbwlgxyzSXARYtUerFQ4FeO0kEyxn+nZ6gfeOAHLobrkkMq62WyaluI5z7stIy1yX7bI2cLujFnjtTKb0KMALnI38nAlIHJeO9JSQXc+tHB/anlECQbFCC3Zmg11SAAhQcj8bPC3nh0baGqcpgcc5apa5Cmi53xYB0ltvpOXe34qo1l6LU1DGsBrQIgHZc7mMfG1khirAGqfZ4VVCThbNEpAcXy3m59reUwYFv68AEPDNiLfKQwEzZQAp8HcXiRqAIohVAMsg9gHYCPWWc+wEsRPEVhhnARyGxp4GtZuYWtwoHHlmm/wwFGV4FE4NAdxXe1eH2rVIssEXq1X2oPyw2RTH86CxONbzAvlA2H0nyAa2QIB21VFUBg+yFOC9RwnA8Tz4HfR+QNGHAMMJPwAnnICiMl6ej6j95PQt2y/Tnn2/IADHKzLq52LJQKTUCDA8Cme3BPwWy/Mn+rl+PEsM6imkqIAROCCghoGIFEj2D5wK0ohC5GXXJBVG4Lh4AAEumuo6Rb31HYVTtD5SAUkqZGatnWu2BNTpZce9a6OyY3Pjp/8CpBeAUFBqYjwAAAAASUVORK5CYIIA";
+	
+	let hornetImg = new Image();
+	hornetImg.src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAAAXNSR0IArs4c6QAAAlBJREFUeF7tmjtOxUAMRfPoET07YFHpWRJ9FsUO6BE9IEWxlLHssT0ZO0o8dETzic+99nxeHlPyv0fy+KczAfwh+Ke8yymTboEPAMMBJYFT3Bg5Kba8VH9D3i1kEibn0wCwKo/BuIrkOnij8vcG8Pb+vAb4+fFTBMo9nybfvUq4A9ICwIE/vXwVDvj9fl3/JwC5iuQ6+L4GpAcAcmPlccUDJ+yeu4rkOji1CgwAKPeHAxCBO6UAuQNsSAFA5JKuLoPWdoDpAEjLH1cDovYD7g7ICKDI/Y4AXGqBhwPSAiADB9ng9KctguAc3L/3DrGnA9IBINd5rByu8pwT8GmQuy/D9whHHXHEAQPAXiVJec4J8Pxo/9abo24OOBrA0f6RAKrLHBdIJXfJdJfG6XWH2OKAAWB/dyfldsccL+4MK/OaRDU1pu747ggALI7hrM+lYgW5LrXj1nlp/ZdqQ2VfQMZFOWAA2CgCnOoWt1UxrQOsjiJWGxxHIbrGAWkBVKuul4L49NdaS7RnhpoDcgPoTd46HqegdRziPkFXAzpMVGSJdbzLAOB+5+dyWToT4D2+dDOkBbubt68D0gBotSTuN89zdQFZlsWUOpIA3WpAOgBYJm2ucYcjSXncD5xgnVfx7ZGuBqQHYCUvnQmiHKA4nuscMABs3/NJRCVQkJNeDghbBYjlRHVWuCwA7WlP267VAdrxDe10NcAwoKrplQCoAmpoZP1qvOXC1vxaIZNsb5UegFmdiA6RDoiIxzzHAGBGdrMOwwE3E9QcznCAGdnNOvwDb6zEUJMSVyEAAAAASUVORK5CYIIA";
+
+	let hornetBurningImg = new Image();
+	hornetBurningImg.src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAAAXNSR0IArs4c6QAAAndJREFUeF7tmk1OxDAMhVv2CNbcgBMgDtM9R2I/h0FzAm7AGsSeQSq11FhxbKexy9RhN1Wa1N97dn7IOAT/G4PHP+wJ4ILg7/Ituwy6BN4BdAekBHZxo+eg2PJc/XX5NpdBiJwPA0CrPAZjKpJp55XKHxvA48vtHOD763cSKPV8GGzXKu4OCAsAB35z95E44OfrYf6dAWQqkmnn6xoQHgDIjZXHFQ+csHpuKpJp57lZoANAud8dgAgcKQWyK8CKFABEJulq0mlpBRgOADf9UTXAaz1g7oCIAJLcbwjApBZYOCAsgGzgIBvs/qRFEJyD32+9QmzpgHAAsvM8Vg5XecoJeDdInZfhc4StjtjigA5grRKnPOUEeL71/dqTo2YO2BrA1vc9ARSnOSqQQu5m053rp9UZYo0DOoD12R2X2w1zPDkzLIyrElXVOHfGd0QAYHEMZ37OFSvIda4dNc9z8z9XGwrrgmxcOQd0AAtFgFNc4tYqJnWA1lGZ2QbHkYgucUBYAMWqa6Ug3v3V1hLpnqHkgNgAWpPX9kcpqO0nc54gqwENBkqyRNvf1QCg/s9P5TK3J8BrfO5kSAp2NW5bB4QBUGtJ/N40TcUJ5HQ6qVKHE6BZDQgHAMskzTVqc8Qpj98DJ2jHFdw9ktWA8AC05Lk9gZcDBNtzmQM6gOU+H0eUAwU5aeUAt1kgM52I9gpXC0C625O2q3WAtH9FO1kNUHQoanpNAEQBVTTS3hqvObBVf5bLIMtXxQbwfBlmAOf79I4wluzp8+/O8Ntoe0scxnVzQHgAQJwC4a28uwM6gIUAOIAq1165v7sDwgLAqQC/vZXfzQH/DcAvsjPoULebFjQAAAAASUVORK5CYIIA";
+	
+	let coconutCrabImg = new Image();
+	coconutCrabImg.src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAAAXNSR0IArs4c6QAAAnNJREFUeF7tW8tRxDAMzZ6Z2QNF0AUHCqADaCJ3mB24pwnogAI40AVFcNgZzjAkUYZobUv+yLvZvL0xtmP56UlPcsKmkX8/8pTZjE3kfGm66f4aY00NkE7fNI3p/moAdk/PQVt3jw80rnmm4tzTlB4Aq/01xpoaoEDCdH81ANur797W9q6b2dy9tv3f+8+LKgyg/bgdqQwEALEUJA/wdf8YUIoJs+RnxUA1AygJrRYA8gC5l2KQ54Dt+5Ar9jdTTlCQ7HAKAU6xzfcPMFDj1Gm5ZnJPRQAwqoDPnZQDiAHtx6AW3fWgEvwnjdN8YpKPAcTEaioAADwIcAYkBb5jkcSAiSmJdUhyDvAlIQoBAMAQkFTBB9zZMGC1ANDBb++/glHx9nLZj3MmLJ4BZwMAuc+nx1wFuOccvcKMEfRc6TmBCpCGNIk9vhJcMwB0dmd3xnWY9wJSDS/JqS8HlOo+Y+iyegBmTOCejY1dbUmtYECMEw+2TVns7A4BwFiLHyEHpDgxSgU4bVbPAKcqTDLJboRKqYAjZ2R5PqloYEY439hYhcApAhBkglQ4SSoQaByKeL4EAwDAiIA7FIQ7ROnCJNA7LIMBsclP0eSUZG2WDPqc55RHydPSuOE7x37rknQCAH+I5lI/EAolnYUQsEgoCAGEAHIAkiBUADKY2QOgDmAInHIpnNQF8i5PChnrrjCnvFwtAEPFN979EWOlt7i+L0hy1+U2dCkMAABgAEIAOQBJECoAGRy+CkcdMCKQW9BoP77igB+tEJLu8yuOpxRzWbfCsf/HZ41FdQCsD1T1+VnoVbXUaDMAYATsYh4LBizGVUaG/gJDHGRfAtKMjQAAAABJRU5ErkJgggAA";
+	
+	let coconutCrabBurningImg = new Image();
+	coconutCrabBurningImg.src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAAAXNSR0IArs4c6QAAAoRJREFUeF7tW7tRxDAQ9cU344AiiGmAgALoAJpwDnMDuZuADiiAgAaIKYLAMxfDIHs9eE/Srn6+O/tdxkiyVm/f7tuVzaaSfz/ylMmMTeB8aXrR/TXGFjVAOn1VVUX3VwOwe3r22rp7fKBxzTMV5x6nGABK7a8xtqgBCiSK7q8GoL7cG1ubu3Zic/vamL+7r+0sDKD9uB2xDAQAoRQkD/B1/xiQiwmT5FeKgWoGUBJaLQDkAXIvxSDPAfV7nyu6mzEnKEh2OIUAp9jm+3sYqHHquFwz2VARAAwq4HIn5QBiQPPRq0V73asE/0njNJ+Y5GIAMXE2FQAADgQ4A6IC37JIYsDIlMg6JDoHuJIQhQAAYAhIquACbjEMWC0AdPDb+29vVLy9XJhxzoSzZ8BiACD3ufSYqwD3nKVXmDCCnis9x1MB0pAmsYdXgmsGgM5u7c64DvNeQKrhJTl15YBc3WcIXVYPwIQJ3LOhsastqRUMCHHiwbYxi63dIQAYavEj5IAYJwapAKfN6hlgVYVRJtmNUC4VsOSMJM9HFQ3MCOsbm1IhcIoAeJkgFU6SCngahyyez8EAADAgYA8F4Q5RujDx9A7nwYDQ5KdocnKyNkkGXc6zyqPkaWm84DtHs3VOOgGAP0RTqe8JhZzOQgiUSCgIAYQAcgCSIFQAMpjYA6AOYAiccikc1QXyLk8KmdJdYUp5uVoA+opvuPsjxkpvcV1fkKSuS23oYhgAAMAAhAByAJIgVAAy2H8VjjpgQCC1oNF+fMUBP1ohJN3nzzgeU8wl3QqH/h9faSxmB8Ac6HNfT4C42nYqQ+ZeJ6GvMtr2kLkPErsfABAQAAMkiix9PJoBSwHmF8v6lF9+h0w3AAAAAElFTkSuQmCC";
+	
+	let spaceshipImages = [[mantaBomberImg,mantaBomberBurningImg],[hornetImg,hornetBurningImg],[coconutCrabImg,coconutCrabBurningImg]]
+	
+	let torpedoImage = new Image() 
+	torpedoImage.src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAAAXNSR0IArs4c6QAAARhJREFUeF7tmcENgzAQBPHbSgfpjdqoI6IbKw1EfhNhcB7O33vSDg3cMTd7NiIt5k8yf/8FABhgToAImAvAEiQCRMCcABEwF4BTgAgQARGBT87HWfpRq9RCWXFbAP3FR/FUJkw3AAB39jFgIGATgXVd2/Yfn23bpsfx7GF6UQAMBrxLaTK89n36MEIYAAAMMI9APw04BVyPQZag+xJkB9wEbJZgPpb2LVCf1ydBLtcFsKb513LJTRAAGGAegb71f1EQZb/3IfkEbcuvR8EVgOh3xF9ZmQEACEIAA4IMQtYGBsjQBymMAUEGIWsDA2TogxTGgCCDkLWBATL0QQpjQJBByNrAABn6IIUxIMggZG1ggAx9kML2BnwBPIl4QSgZ4aUAAAAASUVORK5CYIIA"
+	
+	let allpulses = []
+	let allplanets = []
+	
+	let extract = function(array,target){
+	  for(let i = 0; i < array.length; i++){
+	    if(array[i] === target){
+	      array.splice(i,1)
+	    }
+	  }
+	}
+  let torpedo = function(x,y,xVel,yVel,target){
+    
+    this.x = x;
+    this.y = y;
+    this.xVel = xVel;
+    this.yVel = yVel;
+    this.life = 0
+    this.xThrust =0;
+    this.yThrust =0;
+    
+    if(target === 1){
+      this.target = player1
+    }else if(target === 0){
+      this.target = player2
+    }
+    allpulses.push(this)
+    this.angle = 0
+  }
+  torpedo.prototype.update = function(){
+    
+     
+    this.life++
+    
+    if(this.life > 250){
+      extract(allpulses,this)
+    }
+    
+    this.xDist = Math.abs(this.x - player1.x)
+	  this.yDist = Math.abs(this.y - player1.y)
+	  if(Math.sqrt(this.xDist * this.xDist + this.yDist * this.yDist) < 30){
+	    extract(allpulses,this)
+	  }
+	  this.xDist = Math.abs(this.x - player2.x)
+	  this.yDist = Math.abs(this.y - player2.y)
+	  if(Math.sqrt(this.xDist * this.xDist + this.yDist * this.yDist) < 30){
+	    extract(allpulses,this)
+	  }
+	  this.x += this.xVel;
+    this.y += this.yVel;
+	  
+	  for(let i = 0; i < allplanets.length; i++){
+      this.xDist = Math.abs(this.x - allplanets[i].x)
+  	  this.yDist = Math.abs(this.y - allplanets[i].y)
+  	  if(Math.sqrt((this.xDist * this.xDist) + (this.yDist * this.yDist)) < allplanets[i].radius){
+  	    extract(allpulses,this)
+  	  }
+	  }
+  	this.xDist = Math.abs(this.x)
+  	this.yDist = Math.abs(this.y)
+  	if(Math.sqrt((this.xDist * this.xDist) + (this.yDist * this.yDist)) > 1000){
+	    extract(allpulses,this)
+	  
+	  }
+	  
+	  this.xAttract = this.target.x - this.x ;
+	  this.yAttract = this.target.y - this.y ;
+	   
+	  this.xDist = Math.abs(this.x - this.target.x)
+	  this.yDist = Math.abs(this.y - this.target.y)
+	  
+	  if(Math.sqrt((this.xDist * this.xDist) + (this.yDist * this.yDist)) > 150){
+  	  this.xAttract -= (this.xVel / 0.02);
+  	  this.yAttract -= (this.yVel / 0.02);
+	  }else{
+	    this.xAttract -= (this.xVel / 0.3);
+  	  this.yAttract -= (this.yVel / 0.3);
+	  }
+	  while(Math.abs(this.xAttract)+Math.abs(this.yAttract) > 0.2){
+	    this.xAttract /= 1.01
+	    this.yAttract /= 1.01
+	  }
+	  
+	  this.xVel += this.xAttract;
+	  this.yVel += this.yAttract;
+	  
+	  
+	  
+	  this.angle = Math.atan2(this.xAttract, this.yAttract) * (180 / Math.PI);
+
+    // Draw the torpedo
+    ctx.save();
+    ctx.translate(account(this.x, true), account(this.y, false));
+    ctx.rotate((180 + this.angle) * Math.PI / 180);
+    ctx.drawImage(torpedoImage, -30 * zoom*widener, -30 * zoom*widener, 60 * zoom*widener, 60 * zoom*widener);
+    ctx.restore();
+  }
+	
+	let pulse = function(x,y,xVel,yVel){
+	  this.x = x;
+	  this.y = y;
+	  this.xVel = xVel;
+	  this.yVel = yVel;
+	  allpulses.push(this)
+	}
+	pulse.prototype.update = function(){
+	  
+	  this.xDist = Math.abs(this.x - player1.x)
+	  this.yDist = Math.abs(this.y - player1.y)
+	  if(Math.sqrt(this.xDist * this.xDist + this.yDist * this.yDist) < 30){
+	    extract(allpulses,this)
+	  }
+	  this.xDist = Math.abs(this.x - player2.x)
+	  this.yDist = Math.abs(this.y - player2.y)
+	  if(Math.sqrt(this.xDist * this.xDist + this.yDist * this.yDist) < 30){
+	    extract(allpulses,this)
+	  }
+	  
+	  this.x += this.xVel;
+	  this.y += this.yVel;
+	  
+	  
+	  for(let i = 0; i < allplanets.length; i++){
+      this.xDist = Math.abs(this.x - allplanets[i].x)
+  	  this.yDist = Math.abs(this.y - allplanets[i].y)
+  	  if(Math.sqrt((this.xDist * this.xDist) + (this.yDist * this.yDist)) < allplanets[i].radius){
+  	    extract(allpulses,this)
+  	  }
+	  }
+	  this.xDist = Math.abs(this.x)
+  	this.yDist = Math.abs(this.y)
+	  if(Math.sqrt((this.xDist * this.xDist) + (this.yDist * this.yDist)) > 1000){
+	    extract(allpulses,this)
+	  }
+  
+	  
+  	for(let i = 0 ; i< allplanets.length; i++){
+  	  
+    	this.xDist = Math.abs(this.x - allplanets[i].x)
+    	this.xMultiplier = (allplanets[i].x - this.x)/ Math.abs(allplanets[i].x - this.x)
+    	this.yDist = Math.abs(this.y - allplanets[i].y)
+    	this.yMultiplier = (allplanets[i].y - this.y)/ Math.abs(allplanets[i].y - this.y)
+    	
+    	this.totalDist = Math.sqrt((this.xDist * this.xDist) + (this.yDist*this.yDist))
+    	this.totalForce = (50* allplanets[i].mass/ (this.totalDist * this.totalDist))
+    	this.addedDist = this.xDist + this.yDist
+    	this.ratio = this.addedDist - this.yDist
+    	this.xVel += (this.totalForce * (this.ratio/this.addedDist)) * this.xMultiplier
+    	
+    	this.ratio = this.addedDist - this.xDist
+    	this.yVel += (this.totalForce * (this.ratio/this.addedDist)) * this.yMultiplier
+    
+  	}
+	  
+    
+	  ctx.fillStyle = "lightBlue";
+	  ctx.beginPath();
+	  ctx.arc(account(this.x,true),account(this.y,false),5 * zoom*widener,0,2*Math.PI)
+	  ctx.fill();
+	  
+	  
+	  
+	  
+	}
+	
+  let spaceship = function(x,y,type,playerNum){
+    this.x = x;
+    this.y = y;
+    this.type = type;
+    this.xVel = 0;
+    this.yVel = 0;
+    this.angle = 0;
+    this.engineOn = false;
+    this.firing = false;
+    
+    this.image = spaceshipImages[this.type][0]
+    
+    
+    if(this.type === 0){
+      this.speed = 0.1;
+      this.rotationSpeed = 3
+      this.health = 2
+    }else if(this.type === 1){
+      this.speed = 0.15;
+      this.rotationSpeed = 4
+      this.health = 1
+    }else if(this.type === 2){
+      this.speed = 0.05;
+      this.rotationSpeed = 2
+      this.health = 3
+    }
+	  this.xThrust = 0;
+	  this.yThrust = -1;
+	  this.turning = "not turning"
+	  this.playerNum = playerNum
+	  this.cooldown = 10
+  }
+  spaceship.prototype.update = function(){
+    if(this.turning === "left"){
+  	  this.angle -= this.rotationSpeed
+  	}else if(this.turning === "right"){
+  	  this.angle += this.rotationSpeed
+  	}
+  	if(this.angle > 360){
+  	  this.angle = 1
+  	}else if (this.angle < 0){
+  	  this.angle = 355
+  	}
+  	if(this.angle > 0 && this.angle <= 90){
+  	  this.yThrust = -(90-this.angle)/90
+  	  this.xThrust = this.angle/90
+  	}else if(this.angle > 90 && this.angle <= 180){
+  	  this.yThrust = (this.angle-90)/90
+  	  this.xThrust = (90 - (this.angle - 90))/90
+  	}else if(this.angle > 180 && this.angle <= 270){
+  	  this.yThrust = (90 -(this.angle - 180)) / 90
+  	  this.xThrust = -(this.angle - 180)/90
+  	}else if(this.angle > 270 && this.angle <= 360){
+  	  this.yThrust = -(this.angle - 270)/90
+  	  this.xThrust = -(90 - (this.angle - 270))/90
+  	}
+  	for(let i = 0 ; i< allplanets.length; i++){
+  	  
+    	this.xDist = Math.abs(this.x - allplanets[i].x)
+    	this.xMultiplier = (allplanets[i].x - this.x)/ Math.abs(allplanets[i].x - this.x)
+    	this.yDist = Math.abs(this.y - allplanets[i].y)
+    	this.yMultiplier = (allplanets[i].y - this.y)/ Math.abs(allplanets[i].y - this.y)
+    	
+    	this.totalDist = Math.sqrt((this.xDist * this.xDist) + (this.yDist*this.yDist))
+    	this.totalForce = (50* allplanets[i].mass/ (this.totalDist * this.totalDist))
+    	this.addedDist = this.xDist + this.yDist
+    	this.ratio = this.addedDist - this.yDist
+    	this.xVel += (this.totalForce * (this.ratio/this.addedDist)) * this.xMultiplier
+    	
+    	this.ratio = this.addedDist - this.xDist
+    	this.yVel += (this.totalForce * (this.ratio/this.addedDist)) * this.yMultiplier
+    
+  	}
+
+  	
+  	if(this.engineOn === true){
+  	  this.yVel += this.speed * this.yThrust
+  	  this.xVel += this.speed * this.xThrust
+  	  this.image = spaceshipImages[this.type][1]
+  	}else{ 
+  	  this.image = spaceshipImages[this.type][0]
+  	}
+  	this.x += this.xVel
+  	this.y += this.yVel
+    
+    for(let i = 0; i < allpulses.length; i++){
+      this.xDist = Math.abs(this.x - allpulses[i].x)
+  	  this.yDist = Math.abs(this.y - allpulses[i].y)
+  	  if(Math.sqrt(this.xDist * this.xDist + this.yDist * this.yDist) < 30){
+  	    this.health--
+  	  }
+    }
+    if(this.health <1){
+      inMenu = true
+	    if(this.playerNum === 1){
+	      p1WonLast = true
+	    }else{
+	      p1WonLast = false
+	    }
+    }
+    for(let i = 0; i < allplanets.length; i++){
+      this.xDist = Math.abs(this.x - allplanets[i].x)
+  	  this.yDist = Math.abs(this.y - allplanets[i].y)
+  	  if(Math.sqrt((this.xDist * this.xDist) + (this.yDist * this.yDist)) < allplanets[i].radius){
+  	    inMenu = true
+  	    if(this.playerNum === 1){
+  	      p1WonLast = true
+  	    }else{
+  	      p1WonLast = false
+  	    }
+  	  }
+    }
+    this.xDist = Math.abs(this.x)
+    this.yDist = Math.abs(this.y)
+	  if(Math.sqrt((this.xDist * this.xDist) + (this.yDist * this.yDist)) > 1000){
+	    this.x -= this.xVel;
+	    this.y -= this.yVel;
+	    
+	    this.xVel = 0
+	    this.yVel = 0
+	    
+	  }
+	  
+	  if(this.type === 2){
+	    if(this.playerNum === 0){
+  	    this.xDist = Math.abs(this.x - player2.x)
+  	    this.yDist = Math.abs(this.y - player2.y)
+  	    
+	    }else{
+	      this.xDist = Math.abs(this.x - player1.x)
+  	    this.yDist = Math.abs(this.y - player1.y)
+	    }
+	    
+	    if(Math.sqrt((this.xDist * this.xDist) + (this.yDist * this.yDist)) < 40){
+	      
+	      if(this.playerNum === 0){
+	        p1WonLast = true
+	      }else{
+	        p1WonLast = false
+	      }
+	      if(this.playerNum === 0){
+	        if(player2.type != 2){
+	          inMenu = true
+	        }
+	      }else{
+	        if(player1.type != 2){
+	          inMenu = true
+	        }
+	      }
+	    }
+	  }
+	  
+    while(account(this.x,true) > canvas.width - 50*widener || account(this.y, false) > 650*widener || account(this.x,true) < 50*widener || account(this.y,false) < 50*widener ){
+      zoom -= 0.001
+      xOff = canvas.width/2/widener/ zoom;
+      yOff = 350 / zoom;
+    }
+    
+  	ctx.save()
+  	ctx.translate(account(this.x,true), account(this.y,false))
+  	ctx.rotate(this.angle * Math.PI/180)
+  	ctx.drawImage(this.image, -25 * zoom*widener,-25 * zoom*widener,50 * zoom*widener,50 * zoom*widener)
+  	ctx.restore()
+  	this.cooldown--
+  	
+  	ctx.fillStyle = "grey"
+  	ctx.beginPath();
+  	ctx.arc(canvas.width * this.playerNum, 190*widener, 60*widener, 0 , Math.PI * 2)
+  	ctx.fill();
+  	ctx.fillStyle ="lightBlue"
+  	ctx.fillText(this.health, (canvas.width-40) * this.playerNum, 200*widener)
+  
+  }
+  spaceship.prototype.fire = function(){
+    if(this.cooldown <= 0){
+      if(this.type === 1){
+        new pulse(this.x+50*this.xThrust,this.y+50*this.yThrust,this.xVel + this.xThrust * 8,this.yVel + this.yThrust* 8)
+        this.cooldown = 10
+        
+      }else if(this.type === 0){
+        new torpedo(this.x+50*this.xThrust,this.y+50*this.yThrust,this.xVel + this.xThrust * 4,this.yVel + this.yThrust* 4, this.playerNum)
+        this.cooldown = 50
+      }else if(this.type === 2){
+        new pulse(this.x+50*this.xThrust,this.y+50*this.yThrust,this.xVel + this.xThrust * 8,this.yVel + this.yThrust* 8)
+        this.cooldown = 50
+      }
+     
+    }
+  }
+  spaceship.prototype.set = function(x,y,type,hardReset){
+    this.x = x;
+    this.y = y;
+    this.type = type;
+    this.xVel = 0;
+    this.yVel = 0;
+    this.angle = 0;
+    this.engineOn = false;
+    this.firing = false;
+    this.image = spaceshipImages[this.type][0]
+  	this.xThrust = 0;
+  	this.yThrust = -1;
+  	this.turning = "not turning"
+  	if(hardReset){
+  
+  		if(this.type === 0){
+  		  this.speed = 0.1;
+  		  this.rotationSpeed = 3
+  		  this.health = 3;
+  		}else if(this.type === 1){
+  		  this.speed = 0.15;
+  		  this.rotationSpeed = 4
+  		  this.health = 2
+  		}else if(this.type === 2){
+  		  this.speed = 0.05;
+  		  this.rotationSpeed = 2
+  		  this.health = 4
+  		}
+  	}
+  }
+  let Planet = function(x,y,radius, mass, color){
+    this.x = x;
+    this.y = y;
+    this.radius = radius;
+    this.mass = mass;
+    this.color = color;
+    allplanets.push(this)
+  }
+  Planet.prototype.update = function(){
+    ctx.fillStyle = this.color;
+    ctx.beginPath();
+    ctx.arc(account(this.x,true), account(this.y,false), this.radius * zoom * widener, 0 , Math.PI * 2);
+    ctx.fill();
+  }
+  document.addEventListener('keydown',function(event){
+    if(event.keyCode === 38){
+      player2.engineOn = true
+    }else if(event.keyCode === 37){
+	    player2.turning = "left"
+	    if(inMenu && p2Type > 0){
+	      p2Type--
+	    }
+  	}else if(event.keyCode === 39){
+  	  player2.turning = "right"
+  	  if(inMenu && p2Type < spaceshipImages.length-1){
+	      p2Type++
+	    }
+  	}else if(event.keyCode === 87){
+  	  player1.engineOn = true
+  	}else if(event.keyCode === 65){
+  	  player1.turning = "left";
+  	  if(inMenu && p1Type > 0){
+	      p1Type--
+	    }
+  	}else if(event.keyCode === 68){
+  	  player1.turning = "right"
+  	  if(inMenu && p1Type < spaceshipImages.length-1){
+	      p1Type++
+	    }
+  	}else if(event.keyCode === 40){
+  	  player2.fire();
+  	}else if(event.keyCode === 83){
+  	  player1.fire();
+  	}
+  })
+  
+  document.addEventListener('keyup',function(event){
+	if(event.keyCode === 38){
+	  player2.engineOn = false
+	}else if (event.keyCode === 37|| event.keyCode === 39){
+	  player2.turning = "not turning"
+	}else if(event.keyCode === 87){
+	  player1.engineOn = false
+	}else if(event.keyCode === 65||event.keyCode === 68){
+	  player1.turning = "not turning"
+	}
+	
+  })
+  
+  document.getElementById('canvas').addEventListener('mousemove', function(event) {
+	  mouseX = event.offsetX;
+	  mouseY = event.offsetY;
+	  
+	});
+	
+	document.addEventListener('mousedown',function(event){
+	  mouseDown = true
+	 
+	})
+	document.addEventListener('mouseup',function(event){
+	  mouseDown = false
+	 
+	})
+  
+  
+  
+  let game = function(){
+    ctx.fillStyle = 'black'
+    ctx.fillRect(0,0,canvas.width,canvas.height)
+    ctx.fillStyle = "blue"
+    
+    for(let i = 0; i < allplanets.length; i++){
+      allplanets[i].update()
+    }
+    
+    ctx.strokeStyle = "white"
+    ctx.beginPath();
+    ctx.arc(account(0,true),account(0,false),1000 * zoom*widener,0,2*Math.PI)
+    ctx.stroke();
+    
+    player1.update();
+	  player2.update();
+   
+    for(let i = 0; i < allpulses.length; i++){
+      allpulses[i].update();
+    }
+    if(zoom < 1){
+      zoom += 0.002
+      xOff = canvas.width/2/widener / zoom;
+      yOff = 350 / zoom;
+     
+    }
+    
+    
+  }
+  
+  let menu = function(){
+    ctx.font = `${60*widener}px Arial`
+    allpulses = []
+    allplanets = []
+    zoom =1
+    xOff = canvas.width/2 - 350*widener
+    ctx.fillStyle = "black"
+    ctx.fillRect(0,0,canvas.width,canvas.height)
+    ctx.fillStyle = "lightBlue"
+    if(p1WonLast){
+      ctx.fillText("p1 won!",200*widener+xOff,100*widener)
+    }else if(p1WonLast === false){
+      ctx.fillText("p2 won!",200*widener+xOff,100*widener)
+    }
+    ctx.fillRect(100*widener+xOff,500*widener,500*widener,100*widener)
+    ctx.fillStyle = "grey"
+  
+    ctx.fillText("go!",300*widener+xOff,575*widener)
+    ctx.fillRect(300*widener+xOff,350*widener,100*widener,100*widener)
+    ctx.fillRect(300*widener+xOff,200*widener,100*widener,100*widener)
+    for(let i = 0; i < spaceshipImages.length; i++){
+      ctx.drawImage(spaceshipImages[i][0],(300 + 150*i - 150 * p2Type)*widener+xOff, 350*widener,100*widener,100*widener)
+    }
+    for(let i = 0; i < spaceshipImages.length; i++){
+      ctx.drawImage(spaceshipImages[i][0],(300 + 150*i - 150 * p1Type)*widener+xOff, 200*widener,100*widener,100*widener)
+    }
+   
+    if(mouseDown && mouseX >= (100+xOff)*widener && mouseX <= (600+xOff)*widener && mouseY>=500*widener && mouseY <= 600*widener){
+      let x = 0;
+      let y = 0;
+      let goodEnough = false;
+      for(let j = 0; j < Math.random()*4 + 1; j++){
+        goodEnough = false
+        while(goodEnough === false){
+          goodEnough = true
+          x = Math.floor(Math.random()*1400 - 700)
+          y = Math.floor(Math.random()*1400 - 700)
+          for(let i = 0; i < allplanets.length; i++){
+            let xDist = Math.abs(x - allplanets[i].x)
+            let yDist = Math.abs(y - allplanets[i].y)
+            if(Math.sqrt(xDist * xDist + yDist * yDist) < allplanets[i].radius * 2){
+              goodEnough = false
+            }
+          }
+        }
+        let mass =  Math.random()*50 + 20
+        new Planet(x,y,mass * 3.5,mass,`#F${Math.floor(Math.random()*99999)}`)
+      }
+      inMenu = false
+      x = 0;
+      y = 0;
+      goodEnough = false
+      while(goodEnough === false){
+        goodEnough = true
+        x = Math.floor(Math.random()*1400 - 700)
+        y = Math.floor(Math.random()*1400 - 700)
+        for(let i = 0; i < allplanets.length; i++){
+          let xDist = Math.abs(x - allplanets[i].x)
+          let yDist = Math.abs(y - allplanets[i].y)
+          if(Math.sqrt(xDist * xDist + yDist * yDist) < allplanets[i].radius * 2.7){
+            goodEnough = false
+          }
+        }
+      }
+      
+      player1.set(x,y,p1Type,true)
+      
+      x = 0;
+      y = 0;
+      goodEnough = false
+      while(goodEnough === false){
+        goodEnough = true
+        x = Math.floor(Math.random()*1400 - 700)
+        y = Math.floor(Math.random()*1400 - 700)
+        for(let i = 0; i < allplanets.length; i++){
+          let xDist = Math.abs(x - allplanets[i].x)
+          let yDist = Math.abs(y - allplanets[i].y)
+          if(Math.sqrt(xDist * xDist + yDist * yDist) < allplanets[i].radius * 2.7){
+            goodEnough = false
+          }
+        }
+      }
+      
+      player2.set(x,y,p2Type,true)
+    }
+    
+    
+  }
+  
+  let player1 = new spaceship(250,250,1,0)
+  let player2 = new spaceship(250,250,0,1)
+  setInterval(function(){
+    if(inMenu){
+      menu();
+    }else{
+      game();
+    }
+    
+  },15)
+	
+</script>
+</body>
+</html>
+
+
+
+
+
+
