@@ -18,6 +18,7 @@
 	let p1Type = 0;
 	let p2Type = 0;
 	let inMenu = true
+	let inCredits = false
 	let mouseDown = false
 	let p1WonLast = null
 	let xOff = canvas.width/2/zoom;
@@ -579,10 +580,12 @@
     }else if(p1WonLast === false){
       ctx.fillText("p2 won!",200*widener+xOff,100*widener)
     }
+    ctx.fillRect(200*widener+xOff,610*widener,300*widener,40*widener)
     ctx.fillRect(100*widener+xOff,500*widener,500*widener,100*widener)
     ctx.fillStyle = "grey"
-  
     ctx.fillText("go!",300*widener+xOff,575*widener)
+    ctx.font = `${30*widener}px Arial`
+    ctx.fillText("credits",300*widener+xOff,640*widener)
     ctx.fillRect(300*widener+xOff,350*widener,100*widener,100*widener)
     ctx.fillRect(300*widener+xOff,200*widener,100*widener,100*widener)
     for(let i = 0; i < spaceshipImages.length; i++){
@@ -592,7 +595,7 @@
       ctx.drawImage(spaceshipImages[i][0],(300 + 150*i - 150 * p1Type)*widener+xOff, 200*widener,100*widener,100*widener)
     }
    
-    if(mouseDown && mouseX >= (100+xOff)*widener && mouseX <= (600+xOff)*widener && mouseY>=500*widener && mouseY <= 600*widener){
+    if(mouseDown && mouseX >= 100*widener+xOff && mouseX <= 600*widener+xOff && mouseY>=500*widener && mouseY <= 600*widener){
       let x = 0;
       let y = 0;
       let goodEnough = false;
@@ -650,15 +653,38 @@
       
       player2.set(x,y,p2Type,true)
     }
-    
+    if(mouseDown && mouseY > 610*widener && mouseY < 680 * widener && mouseX > 200 * widener+xOff && mouseX < 500*widener+xOff ){
+      inMenu = false;
+      inCredits = true
+    }
     
   }
-  
+  let credit = function(){
+    ctx.font = `${40*widener}px Arial`
+    allpulses = []
+    allplanets = []
+    zoom =1
+    xOff = canvas.width/2 - 350*widener
+    ctx.fillStyle = "black"
+    ctx.fillRect(0,0,canvas.width,canvas.height)
+    ctx.fillStyle = "lightBlue";
+    ctx.fillText("This game was made by Ezra Tanner!",0*widener+xOff,50*widener);
+    ctx.fillText("-Thank you to my parents!-",100*widener+xOff,300*widener)
+    ctx.fillRect(200*widener+xOff,400*widener,300*widener,60*widener)
+    ctx.fillStyle = "grey";
+    ctx.fillText("<--",310*widener+xOff,440*widener)
+    if(mouseDown && mouseY > 400*widener && mouseY < 460 * widener && mouseX > 200 * widener+xOff && mouseX < 500*widener+xOff ){
+      inMenu = true;
+      inCredits = false
+    }
+  }
   let player1 = new spaceship(250,250,1,0)
   let player2 = new spaceship(250,250,0,1)
   setInterval(function(){
     if(inMenu){
       menu();
+    }else if(inCredits){
+      credit();
     }else{
       game();
     }
