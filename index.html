@@ -98,6 +98,13 @@
     if(this.life > 250){
       extract(allpulses,this)
     }
+    for(let i = 0; i < allpulses.length; i++){
+      this.xDist = Math.abs(this.x - allpulses[i].x)
+      this.yDist = Math.abs(this.y - allpulses[i].y)
+      if(Math.sqrt(this.xDist * this.xDist + this.yDist * this.yDist) < 30 && this.x != allpulses[i].x){
+        extract(allpulses,this)
+  	  }
+    }
     
     this.xDist = Math.abs(this.x - player1.x)
 	  this.yDist = Math.abs(this.y - player1.y)
@@ -490,6 +497,12 @@
   	  player1.fire();
   	}
   })
+  // disable the scrolling of the arrow keys , it was a chatGPT exclusive!;
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowUp' || e.key === 'ArrowDown' || e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+      e.preventDefault();
+    }
+  });
   
   document.addEventListener('keyup',function(event){
 	if(event.keyCode === 38){
@@ -507,6 +520,7 @@
   document.getElementById('canvas').addEventListener('mousemove', function(event) {
 	  mouseX = event.offsetX;
 	  mouseY = event.offsetY;
+	  event.preventDefault();
 	  
 	});
 	
@@ -654,9 +668,4 @@
 </script>
 </body>
 </html>
-
-
-
-
-
 
