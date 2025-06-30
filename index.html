@@ -213,7 +213,7 @@
     	this.yMultiplier = (allplanets[i].y - this.y)/ Math.abs(allplanets[i].y - this.y)
     	
     	this.totalDist = Math.sqrt((this.xDist * this.xDist) + (this.yDist*this.yDist))
-    	this.totalForce = (50* allplanets[i].mass/ (this.totalDist * this.totalDist))
+    	this.totalForce = (10* allplanets[i].mass/ (this.totalDist * this.totalDist))
     	this.addedDist = this.xDist + this.yDist
     	this.ratio = this.addedDist - this.yDist
     	this.xVel += (this.totalForce * (this.ratio/this.addedDist)) * this.xMultiplier
